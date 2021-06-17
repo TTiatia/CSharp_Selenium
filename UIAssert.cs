@@ -7,7 +7,7 @@ namespace SeleniumFramework
     {
         public List<string> ErrorList { get; protected set; }
         public int ErrorCount { get { return ErrorList.Count; } }
-        public string ErrorString { get { return "FAIL " + string.Join("\nFAIL ", ErrorList); } }
+        public string ErrorString { get { return string.Join("\nFAIL ", ErrorList); } }
         public bool ExitOnError { get; set; } = true;
         public bool FullLog { get; private set; }
         public List<string> Log { get; private set; }
@@ -33,13 +33,31 @@ namespace SeleniumFramework
 
         public bool IsFalse(bool? actual, string message = null, bool continueOnFail = false) => Assert<bool?>(null, actual, "IsFalse", (e, a) => a.GetValueOrDefault() == false, message, continueOnFail);
 
+        /// <summary>
+        /// Immediately ends the test.
+        /// </summary>
+        /// <param name="message">The message to report.</param>
         public void ForceFail(string message) => throw new AssertFailedException("FAIL " + message);
 
+        /// <summary>
+        /// Includes a WARN level message in the test log if it is enabled.
+        /// </summary>
+        /// <param name="message">The message to report.</param>
         public void Warning(string message) => WriteLine("WARN " + message);
 
+        /// <summary>
+        /// Includes an INFO level message in the test log if it is enabled.
+        /// </summary>
+        /// <param name="message">The message to report.</param>
         public void Infomation(string message) => WriteLine("INFO " + message);
 
-        protected void WriteLine(string message) => TestContext.WriteLine(message);
+        protected void WriteLine(string message)
+        {
+            if (FullLog)
+            {
+                TestContext.WriteLine(message);
+            }
+        }
 
         /// <summary>
         /// Underlaying assertion function which uses generic types and a lamda param to perform any validation required.
@@ -71,19 +89,18 @@ namespace SeleniumFramework
             }
             else
             {
+                if (!continueOnFail && ExitOnError)
+                {
+                    throw new AssertFailedException("FAIL " + msg + message ?? string.Empty);
+                }
+
                 ErrorList.Add("FAIL " + msg + message ?? string.Empty);
                 if (FullLog)
                 {
                     TestContext.WriteLine("FAIL " + msg + message ?? string.Empty);
                 }
-                if (continueOnFail || !ExitOnError)
-                {
-                    return false;
-                }
-                else
-                {
-                    throw new AssertFailedException(msg);
-                }
+
+                return false;
             }
         }
     }

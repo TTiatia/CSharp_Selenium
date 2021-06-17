@@ -8,51 +8,6 @@ using System.Threading.Tasks;
 
 namespace SeleniumFramework
 {
-    [TestClass]
-    public class UITestController
-    {
-        public TestContext TestContext { get; set; }
-        protected SeleniumWebDriver driver;
-        protected BrowserSession browser;
-        protected SessionConfiguration sessionSettings;
-        protected UIAssert validate;
-
-        [TestInitialize]
-        public void TestSetup()
-        {
-            if (TestContext.Properties.Contains("Browser") && !string.IsNullOrEmpty(TestContext.Properties["Browser"].ToString()))
-            {
-                var b = TestContext.Properties["Browser"].ToString().ToLower();
-                sessionSettings = b switch
-                {
-                    "any" => SessionTypes.Default,
-                    "chrome" => SessionTypes.Chrome,
-                    "firefox" => SessionTypes.Firefox,
-                    "edge" => SessionTypes.Edge,
-                    _ => throw new ArgumentException($"The value '{b}' is not valid for the TestPropertyAttribute 'Browser'"),
-                };
-            }
-            else
-            {
-                sessionSettings = SessionTypes.Default;
-            }
-
-            browser = new BrowserSession(sessionSettings);
-            browser.MaximiseWindow();
-            validate = new UIAssert(TestContext);
-        }
-
-        [TestCleanup]
-        public void TestTearDown()
-        {
-            browser.Dispose();
-            if (validate.ErrorCount > 0)
-            {
-                TestContext.WriteLine("The following assertions failed:\n" + validate.ErrorString);
-            }
-        }
-    }
-
     public static class SessionTypes
     {
         public static SessionConfiguration Default { get { return Chrome; } }
@@ -109,11 +64,13 @@ namespace SeleniumFramework
     [TestClass]
     public class DemoTests : UITestController
     {
-        [TestMethod, TestProperty("Browser", "Chrome")]
+        [TestMethod, TestProperty("Browser", "Chrome"), TestProperty("Debug", "true")]
         public async Task GoogleCoypu()
         {
             browser.Visit("https://www.google.com.au");
-            var z = 0;
+            validate.AreNotEqual(true, false, "Force passes");
+            validate.AreEqual("One", "1", "Woopsidaisy", true);
+            validate.ForceFail("KABOOOOOOM!");
         }
     }
 }
