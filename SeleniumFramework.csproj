@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="msedgedriver.exe" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Coypu" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.4" />
+    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="91.0.4472.10100" />
+    <PackageReference Include="Selenium.WebDriver.GeckoDriver.Win64" Version="0.29.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="msedgedriver.exe" />
+  </ItemGroup>
+
+</Project>
