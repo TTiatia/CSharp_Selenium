@@ -67,10 +67,33 @@ namespace SeleniumFramework
         [TestMethod, TestProperty("Browser", "Chrome"), TestProperty("Debug", "true")]
         public async Task GoogleCoypu()
         {
-            browser.Visit("https://www.google.com.au");
-            validate.AreNotEqual(true, false, "Force passes");
-            validate.AreEqual("One", "1", "Woopsidaisy", true);
-            validate.ForceFail("KABOOOOOOM!");
+            Page_GoogleHome.Visit();
+            Page_GoogleHome.Text_SearchBar.FillInWith("Text");
+            Page_GoogleHome.Button_GoogleSearch.Click();
+
+            var wait = "here";
         }
     }
+
+    public abstract class PageModel
+    {
+        protected static BrowserSession browser;
+        protected static ElementScope Body { get { return browser.FindXPath(".//body"); } }
+
+        public static void Init(BrowserSession session)
+        {
+            browser = session;
+        }
+    }
+
+    public class Page_GoogleHome : PageModel
+    {
+        public static readonly string URL = "https://www.google.com.au";
+        public static readonly ElementScope Text_SearchBar = Body.FindXPath(".//input[@title='Search']");
+        public static readonly ElementScope Button_GoogleSearch = Body.FindButton("Google Search", new Options() { Match = Match.First });
+        public static readonly ElementScope Button_ImFeelingLucky = Body.FindButton("I'm Feeling Lucky", new Options() { Match = Match.First });
+
+        public static void Visit() => browser.Visit("https://www.google.com.au");
+    }
 }
+
