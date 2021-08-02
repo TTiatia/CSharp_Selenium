@@ -41,7 +41,7 @@ namespace SeleniumFramework
 
             loggingEnabled = TestContext.Properties.Contains("DebugEnabled") || (bool)TestContext.Properties.Contains("LoggingEnabled");
             validate = new UIAssert(TestContext, loggingEnabled);
-            PageModel<object>.Init(browser);
+            CustomPageModel.Init(browser);
         }
 
         [TestCleanup]
