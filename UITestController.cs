@@ -25,6 +25,7 @@ namespace SeleniumFramework
                 {
                     "any" => SessionTypes.Default,
                     "chrome" => SessionTypes.Chrome,
+                    "chrome_headless" => SessionTypes.ChromeHeadless,
                     "firefox" => SessionTypes.Firefox,
                     "edge" => SessionTypes.Edge,
                     _ => throw new ArgumentException($"The value '{b}' is not valid for the TestPropertyAttribute 'Browser'"),
@@ -40,7 +41,7 @@ namespace SeleniumFramework
 
             loggingEnabled = TestContext.Properties.Contains("DebugEnabled") || (bool)TestContext.Properties.Contains("LoggingEnabled");
             validate = new UIAssert(TestContext, loggingEnabled);
-            PageModel.Init(browser);
+            PageModel<object>.Init(browser);
         }
 
         [TestCleanup]

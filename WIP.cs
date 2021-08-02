@@ -2,12 +2,29 @@
 using Coypu.Drivers;
 using Coypu.Drivers.Selenium;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SeleniumFramework
 {
+    public class CustomChromeSeleniumWebDriver : SeleniumWebDriver
+    {
+        public CustomChromeSeleniumWebDriver(Browser browser) : base(browser) { }
+
+        private static RemoteWebDriver CustomChromeOptions()
+        {
+            ChromeOptions chromeOptions = new ChromeOptions();
+            chromeOptions.AddArguments("useAutomationExtension", "true");
+            chromeOptions.AddArguments("--headless");
+            chromeOptions.AddArguments("--disable-extensions");
+
+            return new ChromeDriver(chromeOptions);
+        }
+    }
+
     public static class SessionTypes
     {
         public static SessionConfiguration Default { get { return Chrome; } }
@@ -18,6 +35,23 @@ namespace SeleniumFramework
                 return new SessionConfiguration()
                 {
                     Driver = typeof(SeleniumWebDriver),
+                    Browser = Browser.Chrome,
+                    Timeout = TimeSpan.FromSeconds(10),
+                    ConsiderInvisibleElements = false,
+                    RetryInterval = TimeSpan.FromMilliseconds(200),
+                    TextPrecision = TextPrecision.PreferExact,
+                    WaitBeforeClick = TimeSpan.FromSeconds(0),
+                };
+            }
+        }
+
+        public static SessionConfiguration ChromeHeadless
+        {
+            get
+            {
+                return new SessionConfiguration()
+                {
+                    Driver = typeof(CustomChromeSeleniumWebDriver),
                     Browser = Browser.Chrome,
                     Timeout = TimeSpan.FromSeconds(10),
                     ConsiderInvisibleElements = false,
@@ -64,36 +98,69 @@ namespace SeleniumFramework
     [TestClass]
     public class DemoTests : UITestController
     {
-        [TestMethod, TestProperty("Browser", "Chrome"), TestProperty("Debug", "true")]
-        public async Task GoogleCoypu()
+        [TestMethod, TestProperty("Browser", "Firefox")]
+        public async Task GoogleFFExample()
         {
-            Page_GoogleHome.Visit();
-            Page_GoogleHome.Text_SearchBar.FillInWith("Text");
-            Page_GoogleHome.Button_GoogleSearch.Click();
+            Page_GoogleHome.Do((page) =>
+            {
+                page.Visit();
+                page.Text_SearchBar.FillInWith("Text");
+                page.Button_GoogleSearch.Click();
+            });
+        }
 
-            var wait = "here";
+        [TestMethod, TestProperty("Browser", "Chrome_Headless")]
+        public async Task GoogleHeadless()
+        {
+            Page_GoogleHome.Do((page) =>
+            {
+                page.Visit();
+                page.Text_SearchBar.FillInWith("Text");
+                page.Button_GoogleSearch.Click();
+            });
         }
     }
 
-    public abstract class PageModel
+    public abstract class CustomPageModel { }
+
+    public class PageModel<TSelf> : CustomPageModel where TSelf : new()
     {
         protected static BrowserSession browser;
-        protected static ElementScope Body { get { return browser.FindXPath(".//body"); } }
+        protected static ElementScope Scope { get { return browser.FindXPath("./"); } }
+
+        public virtual string URL { get; }
+
+        public void Visit() => browser.Visit(URL);
 
         public static void Init(BrowserSession session)
         {
-            browser = session;
+            browser ??= session;
+        }
+
+        public static bool Do(Action<TSelf> act)
+        {
+            if (!typeof(TSelf).IsSubclassOf(typeof(CustomPageModel)))
+            {
+                throw new InvalidOperationException($"{typeof(TSelf)} is not a valid PageModel class.");
+            }
+
+            try
+            {
+                act.Invoke(new TSelf());
+                return true;
+            }
+            catch (FinderException e)
+            {
+                return false;
+            }
         }
     }
 
-    public class Page_GoogleHome : PageModel
+    public class Page_GoogleHome : PageModel<Page_GoogleHome>
     {
-        public static readonly string URL = "https://www.google.com.au";
-        public static readonly ElementScope Text_SearchBar = Body.FindXPath(".//input[@title='Search']");
-        public static readonly ElementScope Button_GoogleSearch = Body.FindButton("Google Search", new Options() { Match = Match.First });
-        public static readonly ElementScope Button_ImFeelingLucky = Body.FindButton("I'm Feeling Lucky", new Options() { Match = Match.First });
-
-        public static void Visit() => browser.Visit("https://www.google.com.au");
+        public override string URL => "https://www.google.com.au";
+        public readonly ElementScope Text_SearchBar = Scope.FindXPath(".//input[@title='Search']");
+        public readonly ElementScope Button_GoogleSearch = Scope.FindButton("Google Search", new Options() { Match = Match.First });
+        public readonly ElementScope Button_ImFeelingLucky = Scope.FindButton("I'm Feeling Lucky", new Options() { Match = Match.First });
     }
 }
-
