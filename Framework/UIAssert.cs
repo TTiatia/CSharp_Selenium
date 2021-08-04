@@ -1,7 +1,8 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-namespace SeleniumFramework
+
+namespace SeleniumFramework.Framework
 {
     public class UIAssert
     {
@@ -32,6 +33,10 @@ namespace SeleniumFramework
         public bool IsTrue(bool? actual, string message = null, bool continueOnFail = false) => Assert<bool?>(null, actual, "IsTrue", (e, a) => a.GetValueOrDefault() == true, message, continueOnFail);
 
         public bool IsFalse(bool? actual, string message = null, bool continueOnFail = false) => Assert<bool?>(null, actual, "IsFalse", (e, a) => a.GetValueOrDefault() == false, message, continueOnFail);
+
+        public bool NoException(Action act, string message = null, bool continueOnFail = false) => Assert<Action>(null, act, "NoException", CheckException, message, continueOnFail);
+
+        public bool CausesException(Action act, string message = null, bool continueOnFail = false) => Assert<Action>(null, act, "NoException", (e, a) => !CheckException(act, act), message, continueOnFail);
 
         /// <summary>
         /// Immediately ends the test.
@@ -102,6 +107,25 @@ namespace SeleniumFramework
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Returns true if the action causes an exception to be thrown.
+        /// </summary>
+        /// <param name="_blank">Unused parameter. Intentionally unused.</param>
+        /// <param name="act">The action to perform.</param>
+        /// <returns></returns>
+        protected bool CheckException(Action _blank, Action act)
+        {
+            try
+            {
+                act.Invoke();
+            }
+            catch
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

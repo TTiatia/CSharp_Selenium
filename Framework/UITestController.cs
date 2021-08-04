@@ -3,7 +3,8 @@ using Coypu.Drivers.Selenium;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace SeleniumFramework
+[assembly: Parallelize(Workers = 8, Scope = ExecutionScope.MethodLevel)]
+namespace SeleniumFramework.Framework
 {
     [TestClass]
     public abstract class UITestController
@@ -41,7 +42,7 @@ namespace SeleniumFramework
 
             loggingEnabled = TestContext.Properties.Contains("DebugEnabled") || (bool)TestContext.Properties.Contains("LoggingEnabled");
             validate = new UIAssert(TestContext, loggingEnabled);
-            CustomPageModel.Init(browser);
+            BasePageModel.Init(browser);
         }
 
         [TestCleanup]
