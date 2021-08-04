@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Coypu;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 
@@ -36,7 +37,11 @@ namespace SeleniumFramework.Framework
 
         public bool NoException(Action act, string message = null, bool continueOnFail = false) => Assert<Action>(null, act, "NoException", CheckException, message, continueOnFail);
 
-        public bool CausesException(Action act, string message = null, bool continueOnFail = false) => Assert<Action>(null, act, "NoException", (e, a) => !CheckException(act, act), message, continueOnFail);
+        public bool CausesException(Action act, string message = null, bool continueOnFail = false) => Assert<Action>(null, act, "CausesException", (e, a) => !CheckException(act, act), message, continueOnFail);
+
+        public bool ObjectOnPage(Func<ElementScope> obj, string message = null, bool continueOnFail = false) => Assert<Func<ElementScope>>(null, obj, "ObjectOnPage", (e, a) => !CheckException(obj, obj), message, continueOnFail);
+        
+        public bool ObjectNotOnPage(Func<ElementScope> obj, string message = null, bool continueOnFail = false) => Assert<Func<ElementScope>>(null, obj, "ObjectNotOnPage", CheckException, message, continueOnFail);
 
         /// <summary>
         /// Immediately ends the test.
@@ -115,11 +120,11 @@ namespace SeleniumFramework.Framework
         /// <param name="_blank">Unused parameter. Intentionally unused.</param>
         /// <param name="act">The action to perform.</param>
         /// <returns></returns>
-        protected bool CheckException(Action _blank, Action act)
+        protected bool CheckException(Delegate _blank, Delegate act)
         {
             try
             {
-                act.Invoke();
+                act.DynamicInvoke();
             }
             catch
             {
